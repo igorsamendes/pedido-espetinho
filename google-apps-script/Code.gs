@@ -1,7 +1,13 @@
 // Cole este arquivo em Extensões > Apps Script, dentro da planilha do grupo.
+// Depois recarregue a planilha e rode o menu "🍢 Churrasco > Configurar planilha" uma vez.
 const SPREADSHEET_ID = '178cuFed-Cvpwn1CVwZ59hO6NN3uv1MBqxzieRfXC-HE';
 const TAB_NAME = 'Pedidos';
+const SUMMARY_TAB_NAME = 'Resumo';
 const HEADERS = ['Data e hora', 'Pedido ID', 'Pessoa', 'Sabor ID', 'Sabor', 'Quantidade'];
+const COLUMN_WIDTHS = [150, 300, 180, 240, 320, 110];
+const DEFAULT_TAB_NAMES = ['Página1', 'Pagina1', 'Planilha1', 'Sheet1', 'Folha1'];
+const YELLOW = '#f6cf38';
+const DARK_BROWN = '#3a2200';
 const FLAVORS = {
   'aipim-carne-seca': 'Aipim com carne seca',
   'almondega-mucarela': 'Almôndega com muçarela',
@@ -33,17 +39,162 @@ const FLAVORS = {
   'asa-recheada': 'Asa recheada napolitana',
 };
 
-function getSheet_() {
-  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = spreadsheet.getSheetByName(TAB_NAME);
-  if (!sheet) {
-    sheet = spreadsheet.insertSheet(TAB_NAME);
-    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-    sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight('bold').setBackground('#f6cf38');
-    sheet.setFrozenRows(1);
+// --------------------------------------------------------------- planilha --
+
+function onOpen() {
+  try {
+    SpreadsheetApp.getUi()
+      .createMenu('🍢 Churrasco')
+      .addItem('Configurar planilha', 'configurarPlanilha')
+      .addSeparator()
+      .addItem('Limpar pedidos', 'limparPedidos')
+      .addToUi();
+  } catch (error) {
+    console.log('Sem interface para montar o menu: ' + error);
   }
+}
+
+// Monta as abas Pedidos e Resumo. Pode rodar quantas vezes quiser: não apaga pedido nenhum.
+function configurarPlanilha() {
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  spreadsheet.setSpreadsheetLocale('pt_BR');
+  spreadsheet.setSpreadsheetTimeZone('America/Sao_Paulo');
+  prepararAbaPedidos_(spreadsheet);
+  prepararAbaResumo_(spreadsheet);
+  removerAbaPadrao_(spreadsheet);
+  SpreadsheetApp.flush();
+  avisar_('Planilha pronta', 'As abas "' + TAB_NAME + '" e "' + SUMMARY_TAB_NAME + '" estão montadas e esperando os pedidos.');
+}
+
+function limparPedidos() {
+  let ui = null;
+  try {
+    ui = SpreadsheetApp.getUi();
+  } catch (error) {
+    console.log('Rodando sem interface: ' + error);
+  }
+  if (ui && ui.alert('Limpar pedidos', 'Isso apaga todos os pedidos já registrados. Continuar?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  const sheet = getSheet_();
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+  SpreadsheetApp.flush();
+  avisar_('Pronto', 'A planilha está zerada. O resumo volta a contar do zero.');
+}
+
+function avisar_(titulo, mensagem) {
+  try {
+    const ui = SpreadsheetApp.getUi();
+    ui.alert(titulo, mensagem, ui.ButtonSet.OK);
+  } catch (error) {
+    console.log(titulo + ': ' + mensagem);
+  }
+}
+
+function prepararAbaPedidos_(spreadsheet) {
+  let sheet = spreadsheet.getSheetByName(TAB_NAME);
+  if (!sheet) sheet = spreadsheet.insertSheet(TAB_NAME, 0);
+
+  const extraColumns = sheet.getMaxColumns() - HEADERS.length;
+  if (extraColumns > 0 && sheet.getLastColumn() <= HEADERS.length) sheet.deleteColumns(HEADERS.length + 1, extraColumns);
+
+  sheet.getRange(1, 1, 1, HEADERS.length)
+    .setValues([HEADERS])
+    .setFontWeight('bold')
+    .setFontColor(DARK_BROWN)
+    .setBackground(YELLOW)
+    .setVerticalAlignment('middle');
+  sheet.setFrozenRows(1);
+  sheet.setRowHeight(1, 32);
+  COLUMN_WIDTHS.forEach(function (width, index) { sheet.setColumnWidth(index + 1, width); });
+
+  const bodyRows = sheet.getMaxRows() - 1;
+  if (bodyRows > 0) {
+    sheet.getRange(2, 1, bodyRows, 1).setNumberFormat('dd/mm/yyyy hh:mm');
+    sheet.getRange(2, 2, bodyRows, 1).setNumberFormat('@').setFontColor('#9aa0a6');
+    sheet.getRange(2, 4, bodyRows, 1).setNumberFormat('@').setFontColor('#9aa0a6');
+    sheet.getRange(2, 6, bodyRows, 1).setNumberFormat('0').setHorizontalAlignment('center').setFontWeight('bold');
+  }
+
+  if (!sheet.getFilter()) sheet.getRange(1, 1, sheet.getMaxRows(), HEADERS.length).createFilter();
+  sheet.setTabColor('#c0392b');
   return sheet;
 }
+
+function prepararAbaResumo_(spreadsheet) {
+  let sheet = spreadsheet.getSheetByName(SUMMARY_TAB_NAME);
+  if (!sheet) sheet = spreadsheet.insertSheet(SUMMARY_TAB_NAME, 1);
+  const filtro = sheet.getFilter();
+  if (filtro) filtro.remove();
+  sheet.clear();
+
+  sheet.getRange('A1:E1').merge()
+    .setValue('🍢 CHURRASCO DA GALERA — RESUMO')
+    .setFontSize(16)
+    .setFontWeight('bold')
+    .setBackground(YELLOW)
+    .setFontColor(DARK_BROWN)
+    .setHorizontalAlignment('center')
+    .setVerticalAlignment('middle');
+  sheet.setRowHeight(1, 42);
+
+  sheet.getRange('A2:E2').merge()
+    .setValue('Tudo abaixo se atualiza sozinho conforme os pedidos caem na aba ' + TAB_NAME + '.')
+    .setFontStyle('italic')
+    .setFontColor('#6b5a2a')
+    .setHorizontalAlignment('center');
+
+  const indicadores = [
+    ['Total de espetos', '=SUM(' + TAB_NAME + '!F2:F)', '0'],
+    ['Pessoas', '=IF(COUNTA(' + TAB_NAME + '!C2:C)=0,0,COUNTUNIQUE(' + TAB_NAME + '!C2:C))', '0'],
+    ['Sabores diferentes', '=IF(COUNTA(' + TAB_NAME + '!E2:E)=0,0,COUNTUNIQUE(' + TAB_NAME + '!E2:E))', '0'],
+    ['Último pedido', '=IF(COUNT(' + TAB_NAME + '!A2:A)=0,"—",MAX(' + TAB_NAME + '!A2:A))', 'dd/mm/yyyy hh:mm'],
+  ];
+  indicadores.forEach(function (indicador, index) {
+    const row = 4 + index;
+    sheet.getRange(row, 1).setValue(indicador[0]).setFontWeight('bold');
+    sheet.getRange(row, 2).setFormula(indicador[1]).setNumberFormat(indicador[2]).setHorizontalAlignment('left');
+  });
+  sheet.getRange(4, 1, indicadores.length, 2)
+    .setBackground('#fff7d6')
+    .setBorder(true, true, true, true, true, true, '#e0c15a', SpreadsheetApp.BorderStyle.SOLID);
+
+  sheet.getRange('A9').setValue('👥 POR PESSOA');
+  sheet.getRange('D9').setValue('🍢 POR SABOR');
+  sheet.getRange('A9:B9').setFontWeight('bold').setBackground(YELLOW).setFontColor(DARK_BROWN);
+  sheet.getRange('D9:E9').setFontWeight('bold').setBackground(YELLOW).setFontColor(DARK_BROWN);
+
+  sheet.getRange('A10').setFormula(consultaResumo_('C', 'Pessoa', 'Ninguém pediu ainda.'));
+  sheet.getRange('D10').setFormula(consultaResumo_('E', 'Sabor', 'A brasa ainda está apagada.'));
+
+  [230, 110, 40, 330, 110].forEach(function (width, index) { sheet.setColumnWidth(index + 1, width); });
+  sheet.setFrozenRows(2);
+  sheet.setTabColor(YELLOW);
+  return sheet;
+}
+
+// QUERY montado por fora para não repetir aspas: agrupa a coluna pedida e soma as quantidades.
+function consultaResumo_(coluna, rotulo, vazio) {
+  const consulta = 'select ' + coluna + ', sum(F) where ' + coluna + " is not null group by " + coluna +
+    ' order by sum(F) desc label ' + coluna + " '" + rotulo + "', sum(F) 'Espetos'";
+  return '=IFERROR(QUERY(' + TAB_NAME + '!A2:F, "' + consulta + '", 0), "' + vazio + '")';
+}
+
+function removerAbaPadrao_(spreadsheet) {
+  spreadsheet.getSheets().forEach(function (sheet) {
+    if (DEFAULT_TAB_NAMES.indexOf(sheet.getName()) === -1) return;
+    if (sheet.getLastRow() > 0 || sheet.getLastColumn() > 0) return;
+    if (spreadsheet.getSheets().length <= 1) return;
+    spreadsheet.deleteSheet(sheet);
+  });
+}
+
+function getSheet_() {
+  const spreadsheet = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = spreadsheet.getSheetByName(TAB_NAME);
+  return sheet || prepararAbaPedidos_(spreadsheet);
+}
+
+// -------------------------------------------------------------------- API --
 
 function response_(data, callback) {
   const json = JSON.stringify(data);
