@@ -6,6 +6,13 @@ Página estática, com visual propositalmente arcaico, para anotar quantos espet
 
 É preciso ter permissão de **edição** na planilha. O link público sozinho não autoriza um site a gravar nela.
 
+São duas URLs diferentes, e a página precisa da segunda:
+
+- a **da planilha** (`docs.google.com/spreadsheets/...`), que só serve para abrir o arquivo;
+- a **do aplicativo da Web** do Apps Script (`script.google.com/macros/s/.../exec`), a única capaz de gravar os pedidos. É ela que vai em `public/config.js`.
+
+Enquanto `window.APP_SCRIPT_URL` estiver vazia — ou com a URL errada — a página mostra o aviso "A planilha ainda não está conectada" e diz na própria tela o que falta corrigir.
+
 1. Abra a planilha com uma conta que possa editá-la.
 2. Vá em **Extensões → Apps Script**.
 3. Substitua o conteúdo de `Code.gs` pelo arquivo [google-apps-script/Code.gs](google-apps-script/Code.gs) deste projeto e salve.

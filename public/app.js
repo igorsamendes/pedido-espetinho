@@ -1,6 +1,19 @@
 import { SKEWERS, CATALOG_BY_ID, totalQuantity, summarize } from './catalog.js';
 
-const endpoint = String(window.APP_SCRIPT_URL || '').trim();
+// A ponte com a planilha é o aplicativo da Web do Apps Script, não o link do Google Sheets.
+// Contas Workspace recebem a URL com /a/macros/<domínio>/; as duas formas valem.
+const EXEC_URL = /^https:\/\/script\.google\.com\/(?:a\/macros\/[^/]+|macros)\/s\/[\w-]+\/exec$/;
+const configuredUrl = String(window.APP_SCRIPT_URL || '').trim().replace(/\/+$/, '');
+const endpoint = EXEC_URL.test(configuredUrl) ? configuredUrl : '';
+
+// Diz em uma frase o que arrumar em config.js, para não sobrar só o aviso genérico.
+function setupProblem() {
+  if (endpoint) return '';
+  if (!configuredUrl) return 'Falta publicar o Apps Script da planilha e colar a URL dele em public/config.js.';
+  if (configuredUrl.includes('docs.google.com')) return 'Em public/config.js está o link da planilha. Ali vai a URL do aplicativo da Web do Apps Script, terminada em /exec.';
+  if (configuredUrl.endsWith('/dev')) return 'Em public/config.js está a URL de teste (/dev) do Apps Script. Use a da implantação, terminada em /exec.';
+  return 'A URL em public/config.js não parece a de um aplicativo da Web do Apps Script: ela precisa terminar em /exec.';
+}
 const form = document.querySelector('#order-form');
 const catalog = document.querySelector('#catalog');
 const status = document.querySelector('#form-status');
@@ -77,7 +90,7 @@ function jsonp(url) {
       error ? reject(error) : resolve(data);
     }
     window[callback] = data => finish(null, data);
-    script.onerror = () => finish(new Error('Não foi possível carregar a planilha.'));
+    script.onerror = () => finish(new Error('O Apps Script não respondeu. Confira se a implantação está publicada para "Qualquer pessoa".'));
     const target = new URL(url);
     target.searchParams.set('callback', callback);
     target.searchParams.set('_', Date.now().toString());
@@ -191,5 +204,8 @@ form.addEventListener('submit', async event => {
 document.querySelector('#refresh-button').addEventListener('click', () => loadOrders().catch(() => {}));
 renderCatalog();
 updateTotal();
-if (!endpoint) document.querySelector('#setup-warning').hidden = false;
+if (!endpoint) {
+  document.querySelector('#setup-warning-detail').textContent = setupProblem();
+  document.querySelector('#setup-warning').hidden = false;
+}
 loadOrders().catch(() => {});

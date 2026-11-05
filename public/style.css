@@ -17,6 +17,8 @@ main { padding: 18px 24px 34px; }
 .box { border: 3px solid #5a160e; background: #fff9d2; box-shadow: 6px 6px 0 #ab4317; margin-bottom: 25px; }
 .setup-warning { border: 3px dashed #af160b; background: #fff; color: #811107; padding: 14px; margin: 2px 0 22px; line-height: 1.4; }
 .setup-warning[hidden] { display: none; }
+.setup-warning-detail { display: block; margin-top: 6px; font-size: 13px; color: #5d2a12; }
+.setup-warning-detail:empty { display: none; }
 .intro-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
 .intro-box { padding: 18px 22px; }
 h2, h3 { margin-top: 0; }
