@@ -5,4 +5,4 @@
 //
 // Pegue em Apps Script > Implantar > Gerenciar implantações. Ela termina em /exec.
 // Exemplo: window.APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycb.../exec';
-window.APP_SCRIPT_URL = '';
+window.APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwDR_qEBrmYekMq33UjF77-S1INiMMYvVdai-ruqaG0o2LDw1YU-Z7YxMXEaX89Bfwb/exec';
