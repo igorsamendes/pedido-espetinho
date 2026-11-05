@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7ce31">
+  <meta name="description" content="Anote seu pedido de espetinho e veja o total da turma.">
+  <title>Churrasco da Galera — pedido de espetinho</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='.9em' font-size='56'%3E%F0%9F%8D%A2%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js" defer></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <div class="site-wrap">
+    <header class="masthead">
+      <div class="top-strip">★ SITE OFICIAL DO CHURRASCO DA GALERA ★</div>
+      <img class="hero" src="assets/churrasco-de-pobre.png" alt="Churrasco simples em churrasqueira de tijolos, com espetinhos na brasa">
+      <div class="headline">
+        <span class="sparkle" aria-hidden="true">✦</span>
+        <div>
+          <p class="eyebrow">EDIÇÃO 2026 · ORGANIZAÇÃO 100% NA BASE DA FOME</p>
+          <h1>CHURRASCO<br>DA GALERA</h1>
+          <p class="tagline">Escolhe teu espeto, meu consagrado!</p>
+        </div>
+        <span class="sparkle" aria-hidden="true">✦</span>
+      </div>
+      <div class="marquee" aria-label="Faça seu pedido antes que acabe">🔥 FAÇA SEU PEDIDO AQUI 🔥 &nbsp; • &nbsp; A CHURRASQUEIRA NÃO ADIVINHA 🔥</div>
+    </header>
+
+    <main>
+      <section id="setup-warning" class="setup-warning" hidden>
+        <strong>⚠️ A planilha ainda não está conectada.</strong> Avise o organizador antes de fazer seu pedido.
+      </section>
+
+      <div class="intro-grid">
+        <section class="box intro-box">
+          <h2>📋 COMO FUNCIONA</h2>
+          <ol>
+            <li>Escreva seu nome.</li>
+            <li>Escolha quantos quer de cada sabor.</li>
+            <li>Clique em <strong>MANDAR MEU PEDIDO</strong>.</li>
+          </ol>
+          <p class="small-note">Pode pedir sabores diferentes no mesmo envio. Os pedidos aparecem na planilha e no placar abaixo.</p>
+        </section>
+        <aside class="box stamp-box">
+          <span class="stamp">APROVADO<br>PELA FOME</span>
+          <p>Sem login.<br>Sem frescura.<br>Com farofa imaginária.</p>
+        </aside>
+      </div>
+
+      <form id="order-form" class="box order-box" novalidate>
+        <div class="section-title"><span>1</span><h2>QUEM É VOCÊ?</h2></div>
+        <label class="name-label" for="person">Seu nome (ou apelido reconhecível)</label>
+        <input id="person" name="person" type="text" maxlength="60" autocomplete="name" placeholder="Ex.: Igor" required>
+
+        <div class="section-title flavors-title"><span>2</span><h2>QUAL É O SEU PEDIDO?</h2></div>
+        <p class="subheading">Use os botões + e − ou digite a quantidade. Zero significa “não quero”.</p>
+        <div id="catalog"></div>
+
+        <div class="order-footer">
+          <div class="ticket"><strong>SEU TOTAL</strong><span id="my-total">0 espetos</span></div>
+          <button id="submit-button" class="submit-button" type="submit">🔥 MANDAR MEU PEDIDO 🔥</button>
+        </div>
+        <p id="form-status" class="status" role="status" aria-live="polite"></p>
+      </form>
+
+      <section class="box scoreboard" aria-labelledby="score-title">
+        <div class="score-header">
+          <div><p class="eyebrow">AO VIVO, DIRETO DA PLANILHA</p><h2 id="score-title">🏆 PLACAR DA FOME</h2></div>
+          <button id="refresh-button" type="button">↻ ATUALIZAR</button>
+        </div>
+        <p id="score-status" class="small-note" role="status" aria-live="polite">Carregando pedidos...</p>
+        <div class="score-totals">
+          <div><strong id="group-total">0</strong><span>espetos no total</span></div>
+          <div><strong id="people-total">0</strong><span>pessoas</span></div>
+        </div>
+        <div class="score-grid">
+          <div><h3>👥 QUEM PEDIU O QUÊ</h3><div id="people-list" class="result-list"></div></div>
+          <div><h3>🍢 TOTAL POR SABOR</h3><div id="flavor-list" class="result-list"></div></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>Feito com carinho, carvão e HTML de antigamente. <span aria-hidden="true">★</span> Cardápio: Filé Mania, agosto/2026.</footer>
+  </div>
+</body>
+</html>

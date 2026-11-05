@@ -1,0 +1,8 @@
+{
+  "name": "pedido-espetinho",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
